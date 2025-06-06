@@ -87,8 +87,8 @@ const Dashboard: React.FC = () => {
                 <TabsTrigger value="pending">Pending</TabsTrigger>
                 <TabsTrigger value="completed">Completed</TabsTrigger>
               </TabsList>
-              <TabsContent value={activeTab} className="space-y-4">
-                {assessments.length === 0 ? (
+              <TabsContent value={ activeTab } className="space-y-4">
+                {filteredAssessments.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
                     No {activeTab} assessments found.
                   </div>
@@ -101,7 +101,7 @@ const Dashboard: React.FC = () => {
                         <TableHead>Created</TableHead>
                         <TableHead>Due Date</TableHead>
                         <TableHead>Status</TableHead>
-                        {activeTab==='pending'?(
+                        {activeTab==="pending"?(
                         <TableHead>Action</TableHead>):(<TableHead>Score</TableHead>)
                         } 
                         {activeTab==="completed"?
