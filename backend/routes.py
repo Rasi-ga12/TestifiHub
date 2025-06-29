@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify,send_file,Response,current_app
-from models import User,feedback,db,bcrypt,Question,Score
+from models import User,feedback,db,bcrypt,Question,Score,tz,Status
 from flask_jwt_extended import create_access_token
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import extract, func
 from flask_cors import CORS,cross_origin
 from flask_mail import Message
-from datetime import datetime
+from datetime import datetime,timedelta
 import random
 import json,re
 from extensions import mail 
@@ -17,7 +18,9 @@ from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from io import BytesIO
+import traceback
 from docx import Document
+from calendar import month_abbr,monthrange
 
 
 
@@ -60,7 +63,7 @@ def login():
 @routes.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.json
-    email = data.get("email")
+    email = data.get("emailForReset")
     
     user = User.query.filter_by(email=email).first()
     if not user:
@@ -81,12 +84,13 @@ def send_otp():
 @routes.route('/verify-otp', methods=['POST'])
 def verify_otp():
     data = request.json
-    email = data.get("email")
+    email = data.get("emailForReset")
     otp = data.get("otp")
-
+    print(otp)
+    print(otp_storage)
     if email not in otp_storage or otp_storage[email] != otp:
         return jsonify({"message": "Invalid OTP"}), 400
-
+   
     del otp_storage[email]  
     return jsonify({"message": "OTP verified successfully"}), 200
 
@@ -94,31 +98,32 @@ def verify_otp():
 @routes.route('/reset-password', methods=['POST'])
 def reset_password():
     data=request.json 
-    details=data["data"] 
-    new_password = details["newPassword"]
     # reset-password
     if data["actions"]=="reset_password":
-        email = data["email"]
+        email = data["emailForReset"]
+        new_password=data["newPassword"]
         user = User.query.filter_by(email=email).first()
-        if not user:
-            return jsonify({"message": "User not found!"}), 400
+        """if not user:
+            return jsonify({"message": "User not found!"}), 400"""
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
         user.password_hash= hashed_password
         db.session.commit()
     # update-password
     elif  data["actions"]=="update_password":
         id=data["user_id"]
+        details=data["data"] 
+        new_password = details["newPassword"]
         user=User.query.filter_by(id=id).first()
         old_password=details["currentPassword"]
         if not bcrypt.check_password_hash(user.password_hash,old_password):
-            return("password does not match")
+            return jsonify({"message":"password does not match"}),400
     
         hashed=bcrypt.generate_password_hash(new_password).decode('utf-8')
         user.password_hash=hashed
         db.session.commit()
-        return("successful")
+        
     else:
-        return("something went wrong!!!")
+        return jsonify({"message":"something went wrong!!!"}),400
 
 
     return jsonify({"message": "Password reset successful!"}),200
@@ -303,8 +308,6 @@ def feedBack():
                 recipients=[current_app.config["MAIL_USERNAME"]],
                 body=body)
     msg.reply_to=email_id
-    print(current_app.config["MAIL_USERNAME"])
-    print(mail.send(msg))
     try:
         mail.send(msg)
     except Exception as e:
@@ -326,11 +329,8 @@ def generate_assessment():
     subject=collection.get("subject")
     topic=collection.get("topic")
     difficulty=collection.get("difficulty")
-    num_of_quest=int(collection.get("questionCount"))
-    api_key=Config.API_KEY
-    print(subject)
-    print(topic)
-    print(num_of_quest)
+    num_of_quest=collection.get("questionCount")
+    api_key=Config.API_KEY1
     if not api_key:
         return Response(f"Error : API key is missing",status=401,mimetype="text/plain")
     
@@ -380,15 +380,16 @@ def generate_assessment():
             model_output = json.loads(clean_response)
         except json.JSONDecodeError as e:
             print("JSON Decode Error:", e)
-        print(model_output)
+
         
-        if not model_output :
-                return Response("AI model did not generate any content", status=500, mimetype="text/plain")
+        
+        if not model_output or not isinstance(model_output,list) :
+                return Response("AI model did not generate any valid list of content", status=500, mimetype="text/plain")
         try:
-            score=Score(subject=subject,topic=topic,user_id=user_id)
+            score=Score(subject=subject,topic=topic,difficulty=difficulty,user_id=user_id)
             db.session.add(score)
-            db.session.flush()
-            
+            db.session.flush() 
+            # Get the score ID after flushing
             score_id = score.id
             for i in model_output:
                 question=Question(score_id=score_id,quest_text=i["question_text"],choices=i["choices"],is_correct=i["is_correct"])
@@ -404,7 +405,7 @@ def generate_assessment():
     except Exception as e:
                 return Response(f"Google AI Error: {str(e)}", status=500, mimetype="text/plain")
     
-
+ # Starting the assessment   
 @routes.route("/start",methods=["POST"])
 def start():
     data=request.json
@@ -440,7 +441,13 @@ def pending():
     #status=data["status"]
     user=User.query.filter_by(id=user_id).first()
     res=Score.query.filter_by(user_id=user_id).all()
-    response={"user_name":user.username,"assessments":[{"id":r.id,"subject":r.subject,"topic":r.topic,"status":r.status.value,"created_at":r.time,"due_date":r.due_date,"score":r.score} for r in res]}
+    for r in res:
+        if r.due_date.tzinfo is None:
+            r.due_date=r.due_date.replace(tzinfo=tz)
+        if r.due_date<datetime.now(tz) and r.status==Status.pending:
+            Question.delete_expired(r)
+        
+    response={"user_name":user.username,"assessments":[{"id":r.id,"subject":r.subject,"topic":r.topic,"status":r.status.value,"created_at":r.time,"due_date":r.due_date, "score":r.score}  for r in res if r.due_date.replace(tzinfo=tz)>datetime.now(tz) ]}
     return jsonify(response)
 
 # deleting the account
@@ -449,10 +456,15 @@ def delete():
     details=request.json
     user_id=details["user_id"]
     user=User.query.filter_by(id=user_id).first()
-    if  user:
-        db.session.delete(user)
-        db.session.commit()
-    return("successful")
+    try:
+        if  user:
+            db.session.delete(user)
+            db.session.commit()
+    except Exception as e:
+        return jsonify({"message":"Something went wrong!!! Try again"}),400
+    return jsonify(),200
+
+    
 
 #submitted answers
 @routes.route("/submitting",methods=["POST"])
@@ -487,6 +499,7 @@ def code_generator():
     api_key=Config.API_KEY1
     try:
         genai.configure(api_key=api_key)
+        # api model
         model = genai.GenerativeModel(
         model_name="gemini-2.0-flash",
         generation_config={
@@ -509,13 +522,274 @@ def code_generator():
                      }} 
                      Only return a valid JSON object. Do not include anything outside the JSON."""
         code_response = model.generate_content(code_prompt)
+        #cleaning the request to suitable json format
         code = re.sub(r"```json\n|\n```", "",code_response.text).strip()
+        #converting to dict
         code_json=json.loads(code)
         
     except Exception as e:
         return jsonify({"message":"{e},something went wrong"}),400
     return jsonify({"code":code_json["code"],"explanation":code_json["explanation"]}),200
+                    
+# recent activity
+@routes.route("/recent_activity", methods=["POST"])
+def recent_activity():
+    try:
+        data = request.json
+        user_id = data["user_id"]
+        threshold = datetime.now(tz) - timedelta(days=7)
+        #sort by time descending
+        user = (
+            Score.query
+            .filter(Score.user_id == user_id, Score.time >= threshold)
+            .order_by(Score.time.desc())
+            .all()
+        )
+        response = []
+        for u in user:
+            # due days for pending assessments
+            time = (u.due_date.date() - datetime.today().date()).days
+            delta = (datetime.now(tz) - u.time) if u.time.tzinfo else (datetime.now(tz) - u.time.replace(tzinfo=tz))
+            if delta.days < 1:
+                settime = f"{delta.total_seconds()/3600:.1f} hours ago"
+            else:
+                settime = f"{u.time.strftime('%Y-%m-%d')} at {u.time.strftime('%H:%M')}"
+            if u.status == Status.completed:
+                response.append({
+                    "id": u.id,
+                    "title": f"{u.subject} Assessment completed ",
+                    "time": settime,
+                    "status": u.status.value,
+                    "description": f" scored {round(((u.score/30)*100),2)}% on {u.topic}"
+                })
+            elif u.status == Status.pending:
+                response.append({
+                    "id": u.id,
+                    "title": f"{u.subject} Assessment assigned ",
+                    "time": settime,
+                    "status": u.status.value,
+                    "description": f"{u.topic} due in {time} days"
+                })
+            else:
+                response.append({
+                    "id": u.id,
+                    "title": f"{u.subject} Assessment expired",
+                    "time": settime,
+                    "status": u.status.value,
+                    "description": f"Assessment expired at {u.due_date.date().strftime('%Y-%m-%d')}"
+                })
+        return jsonify(response), 200
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
+# Total assessment
+@routes.route("/total_assessment", methods=["POST"])
+def total_assessment():
+    try:
+        data = request.json
+        user_id = data["user_id"]
+        this_month = datetime.now(tz).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        now = datetime.now(tz)
 
+        # Current month stats
+        current_stats = (
+            db.session.query(
+                func.count(Score.id),
+                func.avg(Score.score)
+            )
+            .filter(
+                Score.user_id == user_id,
+                Score.time >= this_month,
+                Score.time <= now
+            )
+            .first()
+        )
+        count = current_stats[0] or 0
+        average_score = int(current_stats[1]) if current_stats[1] is not None else 0
+
+        # Previous month stats
+        last_day_prev_month = this_month - timedelta(days=1)
+        first_day_prev_month = last_day_prev_month.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_stats = (
+            db.session.query(
+                func.count(Score.id),
+                func.avg(Score.score)
+            )
+            .filter(
+                Score.user_id == user_id,
+                Score.time >= first_day_prev_month,
+                Score.time <= last_day_prev_month
+            )
+            .first()
+        )
+        previouscount = prev_stats[0] or 0
+        average_prev_month = int(prev_stats[1]) if prev_stats[1] is not None else 0
+
+        # Calculate percentages
+        days_in_current = (now - this_month).days + 1
+        days_in_prev = (last_day_prev_month - first_day_prev_month).days + 1
+
+        previous_percent = (previouscount / (days_in_prev * 3) * 100) if previouscount else 0
+        current_percent = (count / (days_in_current * 3) * 100) if count else 0
+        total_percent = current_percent - previous_percent
+        approximate_avg_score = average_score - average_prev_month
+        
+        return jsonify({
+            "total_assessment": count,
+            "percentage": f"{total_percent:.2f}%",
+            "average": average_score,
+            "approxi_average": approximate_avg_score
+        }), 200
+    
+
+    except Exception as e:
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+
+# analysis of the assessment
+@routes.route("/analysis",methods=["POST"])
+def analysis():
+    try:
+        data=request.json
+        user_id=data["user_id"]
+       
+        user=Score.query.filter_by(user_id=user_id).all()
+        if not user:
+            return jsonify({"message":"No assessments found"}),404
+    
+        year=data["selectedYear"]
+        year_start=datetime(year,1,1,0,0,0,0)
+        year_end=datetime(year,12,31,23,59,59,999999)
+        
+
+        # nothing available in the specific year
+        if not any(score.time >= year_start and score.time <= year_end for score in user):
+            return jsonify({"message": "No assessments found for the specified year"}), 404    
+        topic_scores=[]
+        # month wise subject average
+        
+        month=data["selectedMonth"]      
+        month_start=datetime(year,month,1)
+        last_day=monthrange(year,month)[1]   
+        month_end= datetime(year,month,last_day,23,59,59,999999) 
+        # topic wise scores
+        topic_stat=(
+            db.session.query(
+                Score.topic,
+                Score.time,
+                Score.score,
+                Score.difficulty
+            ).filter(
+                Score.user_id == user_id,
+                Score.time >= month_start,
+                Score.time <= month_end
+            ).order_by(
+                Score.topic, 
+            )
+        )
+        topic_scores = [{'topic': topic, 'date':time.strftime("%Y-%m-%d"),'score': score if score is not None else 0,"difficulty":difficulty.value} 
+                        for topic,time,score,difficulty in topic_stat]      
+        return jsonify(topic_scores), 200
+       
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500        
+    
+    
+#subject wise analysis
+@routes.route("/sub_analysis",methods=["POST"])
+def sub_analysis():
+    try:
+        data=request.json
+        user_id=data["user_id"]
+       
+        user=Score.query.filter_by(user_id=user_id).all()
+        if not user:
+            return jsonify({"message":"No assessments found"}),404
+    
+        year=data["selectedYear"]
+        year_start=datetime(year,1,1,0,0,0,0)
+        year_end=datetime(year,12,31,23,59,59,999999)
+        
+
+        # nothing available in the specific year
+        if not any(score.time >= year_start and score.time <= year_end for score in user):
+            return jsonify({"message": "No assessments found for the specified year"}), 404    
+        subject_scores = []
+        # month wise subject average
+        
+        month=data["selectedMonth"]      
+        month_start=datetime(year,month,1)
+        last_day=monthrange(year,month)[1]   
+        month_end= datetime(year,month,last_day,23,59,59,999999) 
+        subject_stats=(
+            db.session.query(
+                Score.subject,
+                extract('month',Score.time).label('month'), 
+                func.avg(Score.score).label('average_score')
+            ).filter(
+                Score.user_id == user_id,
+                Score.time >= month_start,
+                Score.time <= month_end
+            ).group_by(
+                Score.subject, extract('month',Score.time)
+            
+            ).order_by(
+                Score.subject          
+            )
+        )
+        
+        subject_scores = [
+                {"month": month_abbr[month], "subject": subject, "average_score": average_score if average_score is not None else 0} 
+                  for subject, month, average_score in subject_stats]
+        return jsonify(subject_scores), 200
+           
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
+# for performance analysis
+@routes.route("/performance_analysis",methods=["POST"])
+def performance_analysis():
+    try:
+        data=request.json
+        user_id=data["user_id"]
+       
+        user=Score.query.filter_by(user_id=user_id).all()
+        if not user:
+            return jsonify({"message":"No assessments found"}),404
+    
+        year=data["selectedYear"]
+        year_start=datetime(year,1,1,0,0,0,0)
+        year_end=datetime(year,12,31,23,59,59,999999)
+        
+
+        # nothing available in the specific year
+        if not any(score.time >= year_start and score.time <= year_end for score in user):
+            return jsonify({"message": "No assessments found for the specified year"}), 404    
+        average_scores=[]
+        # month wise average scores
+        average_stats=(
+        db.session.query(
+            extract('month',Score.time).label('month'),
+            func.avg(Score.score).label('average_score'),
+            func.count(Score.id).label('total_assessments')
+        ) .filter(
+                Score.user_id == user_id,
+                Score.time >= year_start,
+                Score.time <= year_end
+        ).group_by('month').order_by('month').all()
+        )  
+         
+        average_scores= [
+            {"month": month_abbr[month], "average_score": average_score if average_score is not None else 0, "total_assessments": total_assessments}  
+            for month, average_score, total_assessments in average_stats] 
+        return jsonify(average_scores), 200
+       
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+    
+# Preview of the assessment
 @routes.route("/preview",methods=["POST"])
 def preview():
     data=request.json
@@ -540,9 +814,27 @@ def preview():
             "user_choice":q.user_choice
         }
         result["questions"].append(question_data)
-    print(result)
+    
     return jsonify(result)
 
+ # Update the status of the score
+@routes.route("/update_exam_status", methods=["POST"])
+def update_exam_status():
+    data = request.json
+    user_id = data.get("user_id")
+    score_id = data.get("score_id")
+    status = data.get("status")
+
+    if not user_id or not score_id or not status:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    score = Score.query.filter_by(user_id=user_id, id=score_id).first()
+    if not score:
+        return jsonify({"error": "Score not found"}), 404
+
+    score.status = Status[status]
+
+# profile 
 @routes.route("/profile",methods=["POST"])
 def profile():
     data=request.json

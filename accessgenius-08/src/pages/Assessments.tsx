@@ -100,7 +100,7 @@ const Assessments: React.FC<AssessmentsProps> = ({ userRole = 'class-faculty' })
                     <Plus className="mr-2 h-4 w-4" /> Create New Assessment
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[900px]">
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[900px] ">
                   <DialogHeader>
                     <DialogTitle>Create New Assessment</DialogTitle>
                     <DialogDescription>

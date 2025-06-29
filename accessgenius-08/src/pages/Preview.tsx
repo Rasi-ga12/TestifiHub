@@ -59,9 +59,9 @@ const Preview: React.FC = () => {
             <h2 className="text-lg font-semibold">
               Q{qIndex + 1}. {question.text}
               {!question.user_choice && (
-              <p style={{ color: "red", display: "inline", marginLeft: "8px" }}>
+              <span style={{ color: "red", display: "inline", marginLeft: "8px" }}>
                 (Skipped)
-              </p>
+              </span>
               )}
             </h2>
             <div className="space-y-2">

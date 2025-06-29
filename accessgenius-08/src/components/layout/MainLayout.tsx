@@ -1,38 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import Logo from '@/components/ui/Logo';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import { Navigation } from './Navigation';
-import { HeaderActions } from './HeaderActions';
-import { mainNavItems, bottomNavItems } from './nav-items';
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import Logo from "@/components/ui/Logo";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
+import { useBreakpoint } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { Navigation } from "./Navigation";
+import { HeaderActions } from "./HeaderActions";
+import { mainNavItems, bottomNavItems } from "./nav-items";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const isMobile = useIsMobile();
+  const { isMobile, isTablet } = useBreakpoint();
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [pageTransition, setPageTransition] = useState(false);
+  const authRoutes = ["/login", "/register"];
+  const isAuthPage = authRoutes.includes(location.pathname);
 
   useEffect(() => {
-    const isPrivateRoute = !['/', '/login', '/register'].includes(location.pathname);
+    const isPrivateRoute = !["/", "/login", "/register"].includes(
+      location.pathname
+    );
     setIsAuthenticated(isPrivateRoute);
 
     if (isPrivateRoute) {
-      setUserRole('admin');
+      setUserRole("admin");
     }
 
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
       setIsDarkMode(true);
-      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add("dark");
     }
 
     setPageTransition(true);
@@ -42,7 +46,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
 
   const filteredMainNavItems = mainNavItems.filter(
@@ -54,12 +58,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="fixed top-0 left-0 w-full h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between py-4">
+        <div className="flex h-16 items-center justify-between py-4 px-4 w-full">
           <div className="flex items-center gap-2">
-            {isAuthenticated && isMobile && (
+            {isAuthenticated && (isMobile || isTablet) && (
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="mr-2">
@@ -69,10 +73,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </SheetTrigger>
                 <SheetContent side="left" className="flex flex-col">
                   <Logo />
-                  <Navigation 
-                    items={filteredMainNavItems} 
-                    bottomItems={filteredBottomNavItems} 
-                    mobile={true} 
+                  <Navigation
+                    items={filteredMainNavItems}
+                    bottomItems={filteredBottomNavItems}
+                    mobile={true}
                   />
                 </SheetContent>
               </Sheet>
@@ -80,7 +84,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Logo size={isMobile ? "sm" : "md"} />
           </div>
 
-          <HeaderActions 
+          <HeaderActions
             isDarkMode={isDarkMode}
             toggleDarkMode={toggleDarkMode}
             isAuthenticated={isAuthenticated}
@@ -90,19 +94,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Main content */}
       <div className="flex-1 flex">
-        {isAuthenticated && !isMobile && (
-          <aside className="w-64 border-r bg-sidebar px-4 py-6 hidden md:block">
-            <Navigation 
-              items={filteredMainNavItems} 
-              bottomItems={filteredBottomNavItems} 
+        {isAuthenticated && !isMobile && !isTablet &&(
+          <aside className="w-64 fixed top-16 bottom-0 left-0 border-r bg-sidebar px-4 py-6 hidden md:block overflow-y-auto">
+            <Navigation
+              items={filteredMainNavItems}
+              bottomItems={filteredBottomNavItems}
             />
           </aside>
         )}
 
-        <main className={cn(
-          "flex-1 py-6 px-6", 
-          pageTransition ? "page-transition-enter page-transition-enter-active" : ""
-        )}>
+        <main
+          className={cn(
+            "flex-1 overflow-y-auto h-[calc(100vh-4rem)] py-6 px-6",
+            isAuthenticated && !isMobile && !isTablet? "ml-64" : "",
+            isAuthPage ? "flex items-center justify-center" : "",
+            pageTransition
+              ? "page-transition-enter page-transition-enter-active"
+              : ""
+          )}
+        >
           {children}
         </main>
       </div>

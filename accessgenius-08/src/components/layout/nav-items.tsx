@@ -6,12 +6,13 @@ export interface NavItem {
   href: string;
   icon: React.ReactNode;
   roles?: string[];
+  hideOnMobile?: boolean; 
 }
 
 export const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: <Home className="h-5 w-5" /> },
   { title: 'Analytics', href: '/analytics', icon: <BarChart3 className="h-5 w-5" /> },
-  { title: 'Code Generator', href: '/code-generator', icon: <Code className="h-5 w-5" /> }
+  { title: 'Code Generator', href: '/code-generator', icon: <Code className="h-5 w-5" />,hideOnMobile: true, }
  
 ];
 

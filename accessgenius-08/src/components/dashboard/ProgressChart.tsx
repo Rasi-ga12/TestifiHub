@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar, Cell } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -148,6 +148,13 @@ export const DualChart: React.FC<DualChartProps> = ({
   performanceData,
   completionData
 }) => {
+const threshold = 75;
+
+  // Get dynamic subject keys
+  const subjects = performanceData.length > 0
+    ? Object.keys(performanceData[0]).filter((key) => key !== 'name')
+    : [];
+
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader>
@@ -160,17 +167,19 @@ export const DualChart: React.FC<DualChartProps> = ({
             <TabsTrigger value="performance">Performance</TabsTrigger>
             <TabsTrigger value="completion">Completion</TabsTrigger>
           </TabsList>
+
+          {/* Performance Tab - Updated with Bar Chart */}
           <TabsContent value="performance" className="h-80 w-full px-4 pb-4">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData}>
+              <BarChart data={performanceData}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
                   axisLine={{ stroke: '#ddd', strokeWidth: 1 }}
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
                   tickLine={false}
                   axisLine={{ stroke: '#ddd', strokeWidth: 1 }}
@@ -178,47 +187,44 @@ export const DualChart: React.FC<DualChartProps> = ({
                 />
                 <Tooltip />
                 <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="math"
-                  name="Mathematics"
-                  stroke="#3b82f6"
-                  strokeWidth={2}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: "#3b82f6" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="science"
-                  name="Science"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: "#10b981" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="english"
-                  name="English"
-                  stroke="#f59e0b"
-                  strokeWidth={2}
-                  dot={{ r: 4, strokeWidth: 2 }}
-                  activeDot={{ r: 6, strokeWidth: 0, fill: "#f59e0b" }}
-                />
-              </LineChart>
+                {subjects.map((subject) => (
+                  <Bar key={subject} dataKey={subject} name={subject}>
+                    {performanceData.map((entry, index) => (
+                      <Cell
+                        key={`${subject}-${index}`}
+                        fill={entry[subject] >= threshold ? '#34d399' : '#f87171'}
+                      />
+                    ))}
+                  </Bar>
+                ))}
+              </BarChart>
             </ResponsiveContainer>
+
+            {/* Legend for strong/weak */}
+            <div className="flex gap-4 mt-4 text-sm px-2">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-400 rounded" />
+                <span>Strong (≥ {threshold}%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-400 rounded" />
+                <span>Weak (&lt; {threshold}%)</span>
+              </div>
+            </div>
           </TabsContent>
+
+          {/* Completion Tab - As is */}
           <TabsContent value="completion" className="h-80 w-full px-4 pb-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={completionData}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 12 }} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 12 }}
+                  tickLine={false}
                   axisLine={{ stroke: '#ddd', strokeWidth: 1 }}
                 />
-                <YAxis 
+                <YAxis
                   tick={{ fontSize: 12 }}
                   tickLine={false}
                   axisLine={{ stroke: '#ddd', strokeWidth: 1 }}

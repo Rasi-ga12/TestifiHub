@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Brain, Sparkles } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import axios from 'axios';
 
 const formSchema = z.object({
@@ -80,7 +80,10 @@ const AssessmentGenerator: React.FC = () => {
 
   const handleSubmit = async (values: FormValues) => {
     if (remainingAssessments <= 0) {
-      toast.error("Daily limit reached. Try again tomorrow.");
+      toast({
+        title: "Limit Reached",
+        description: "You have reached the daily limit of 3 assessments. Please try again tomorrow.",
+      })
       return;
     }
 
@@ -96,34 +99,42 @@ const AssessmentGenerator: React.FC = () => {
 
       await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate delay
 
-      toast.success("Assessment generated successfully!");
+      toast({
+        title: "Assessment Generated",
+        description: "Your assessment has been successfully generated.",
+      })
       tracker.count += 1;
       setRemainingAssessments(3 - tracker.count);
       localStorage.setItem(key, JSON.stringify(tracker));
       window.location.href = "/dashboard";
 
     } catch (error) {
-      toast.error("Failed to generate assessment. Please try again.");
-      console.error("Error generating assessment:", error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to generate assessment. Please try again.",
+        variant: "destructive",
+      })
+     
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <Card>
+    <div className="max-h-[80vh] overflow-y-auto px-1">
+    <Card className='w-full'>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          <CardTitle>AI Assessment Generator</CardTitle>
+          <CardTitle  className='text-lg sm:text-xl'>AI Assessment Generator</CardTitle>
         </div>
-        <CardDescription>Create custom assessments using AI technology</CardDescription>
+        <CardDescription className='text-sm sm:text-base'>Create custom assessments using AI technology</CardDescription>
       </CardHeader>
 
       <CardContent>
         <Tabs defaultValue="manual">
           <div className="flex justify-center mb-4">
-            <TabsList className="bg-muted w-fit">
+            <TabsList className="bg-muted w-full sm:w-fit overflow-x-auto">
               <TabsTrigger value="manual">📋 Manual Input</TabsTrigger>
             </TabsList>
           </div>
@@ -131,7 +142,7 @@ const AssessmentGenerator: React.FC = () => {
           <TabsContent value="manual" className="space-y-4 animate-fade-in-up">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="subject"
@@ -172,7 +183,7 @@ const AssessmentGenerator: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="difficulty"
@@ -215,7 +226,7 @@ const AssessmentGenerator: React.FC = () => {
 
                 <Button
                   type="submit"
-                  className="mx-auto w-1/4 flex items-center justify-center"
+                  className="w-full sm:w-1/2 mx-auto flex items-center justify-center"
                   size="lg"
                   disabled={isGenerating || remainingAssessments <= 0}
                 >
@@ -237,15 +248,16 @@ const AssessmentGenerator: React.FC = () => {
         </Tabs>
       </CardContent>
 
-      <CardFooter className="flex justify-between text-sm text-muted-foreground">
-        <div className="flex items-center gap-1">
+      <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-muted-foreground text-center">
+        <div className="flex items-center justify-center gap-1">
           <Brain className="h-4 w-4" />
-          <span>Powered by AI</span>
+          <span className="text-center sm:text-left">Powered by AI</span>
         </div>
-        <span>Remaining Assessments: {remainingAssessments}</span>
+        <span className="text-center sm:text-left" >Remaining Assessments: {remainingAssessments}</span>
         {isGenerating && <span>This may take a few moments...</span>}
       </CardFooter>
     </Card>
+    </div>
   );
 };
 

@@ -34,7 +34,7 @@ const Logo: React.FC<LogoProps> = ({
         size === 'sm' ? 'w-8' : size === 'md' ? 'w-10' : 'w-12'
       )}>
         <div className="absolute inset-0 bg-primary rounded-lg animate-pulse opacity-20"></div>
-        <span className="font-bold">A</span>
+        <span className="font-bold">T</span>
       </div>
       
       {showText && (
@@ -43,7 +43,7 @@ const Logo: React.FC<LogoProps> = ({
             "font-bold leading-none",
             size === 'sm' ? 'text-lg' : size === 'md' ? 'text-xl' : 'text-2xl'
           )}>
-            AssessPro
+            TestifyHub
           </span>
           <span className="text-xs text-muted-foreground">Assessment Platform</span>
         </div>

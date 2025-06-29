@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Code, Lightbulb } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import axios from 'axios';
 
 
@@ -22,40 +22,49 @@ const CodeGenerator: React.FC = () => {
     "JavaScript", "TypeScript", "Python", "Java", "C++", "Go", "Ruby", "PHP", "C#", "Swift"
   ];
 
-  const handleGenerate = async () => {
-    if (!query.trim()) {
-      toast.error("Please enter a problem statement");
-      return;
-    }
-    
-    if (!language) {
-      toast.error("Please select a programming language");
-      return;
-    }
+ const handleGenerate = async () => {
+  if (!query.trim()) {
+    toast({
+      title: "Error",
+      description: "Please enter a problem statement.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    setIsGenerating(true);
+  if (!language) {
+    toast({
+      title: "Error",
+      description: "Please select a programming language.",
+      variant: "destructive",
+    });
+    return;
+  }
 
-    try{
-      const res=await axios.post(
-        ' http://127.0.0.1:5000/code_generator',
-         {query,language},
-         {
-        headers:{"content-type":"application/json",}
-         },
-       
-      )
+  setIsGenerating(true);
 
-      setGeneratedCode(res.data.code);
-      setExplanation(res.data.explanation);
-      setIsGenerating(false);
-      toast.success("Code generated successfully!");
-    }
-    catch(error)
-    {
-        toast.error(error.response?.data?.message || "Something went wrong");
-    }
-   
-  };
+  try {
+    const res = await axios.post(
+      'http://127.0.0.1:5000/code_generator',
+      { query, language },
+      {
+        headers: { "content-type": "application/json" }
+      },
+    );
+
+    setGeneratedCode(res.data.code);
+    setExplanation(res.data.explanation);
+    setIsGenerating(false);
+
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.response?.data?.message || "Something went wrong.",
+      variant: "destructive",
+    });
+    setIsGenerating(false);
+  }
+};
 
   return (
     <MainLayout>

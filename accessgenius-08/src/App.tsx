@@ -6,7 +6,6 @@ import './App.css';
 // Pages
 import Index from './pages/Index';
 import Login from './pages/Login';
-import ForgotPassword from './pages/ForgotPassword';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Assessments from './pages/Assessments';
@@ -19,11 +18,18 @@ import StudentAssessment from './pages/StudentAssessment';
 import Groups from './pages/Groups';
 import CodeGenerator from './pages/CodeGenerator';
 import Feedback from './pages/Feedback';
+
+import ScorePage from './pages/ScorePage';
+
 import Preview from './pages/Preview';
+import { Toaster } from './components/ui/toaster';
+import ForgotPassword from './pages/ForgotPassword';
+
 
 const App: React.FC = () => {
   return (
     <Router>
+       <Toaster />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
@@ -38,6 +44,7 @@ const App: React.FC = () => {
         <Route path="/take-assessment/:id" element={<TakeAssessment />} />
         <Route path="/preview-assessment/:id" element={<Preview />} />
         <Route path="/student/assessments" element={<StudentAssessment />} />
+        <Route path="/score" element={<ScorePage />} />
         <Route path="/code-generator" element={<CodeGenerator />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="*" element={<NotFound />} />

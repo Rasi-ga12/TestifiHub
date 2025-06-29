@@ -30,7 +30,7 @@ useEffect(()=>{
         });}, [user_id]);
         console.log(user);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 justify-between">
       <Button 
         variant="ghost" 
         size="icon" 

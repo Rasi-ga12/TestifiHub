@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-DATABASE_URI = "mysql+mysqlconnector://root:@localhost:3306/signup_db"
+DATABASE_URI = "mysql+mysqlconnector://root:root@localhost:3306/signup_db"
 
 class Config:
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
@@ -15,5 +15,7 @@ class Config:
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     API_KEY= os.getenv("API_KEY")
+
     API_KEY1= os.getenv("API_KEY1")
+
  

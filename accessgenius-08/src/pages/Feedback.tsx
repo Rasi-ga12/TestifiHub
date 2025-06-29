@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Send } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from "@/hooks/use-toast";
 import axios from 'axios';
 
 const feedbackTypes = [
@@ -19,51 +19,57 @@ const Feedback: React.FC = () => {
   const [feedbackText, setFeedbackText] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!feedbackType) {
-      toast.error('Please select a feedback type');
-      return;
-    }
-    
-    if (!feedbackText.trim()) {
-      toast.error('Please enter your feedback');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    const user_id=localStorage.getItem("user_id");
-    const arr={user_id,feedbackType,feedbackText}
-    try{
-    const res=await axios.post("http://127.0.0.1:5000/feedback",
-      arr
-    )
-      if(res)
-      {
-        console.log("success")
-      }}
-    catch(error)
-    {
-      console.error(error);
-    }
-    
-    
-    // Simulate sending feedback
-    setTimeout(() => {
-      toast.success('Thank you for your feedback!');
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!feedbackType) {
+      toast({
+    title: "Error",
+    description: "Please select a feedback type.",
+    variant: "destructive",
+  });
+    return;
+  }
+
+  if (!feedbackText.trim()) {
+    toast({
+    title: "Error",
+    description: "Please enter your feedback.",
+    variant: "destructive",
+  });
+    return;
+  }
+
+  setIsSubmitting(true);
+  const user_id = localStorage.getItem("user_id");
+  const arr = { user_id, feedbackType, feedbackText };
+
+  try {
+    const res = await axios.post("http://127.0.0.1:5000/feedback", arr);
+    if (res.status === 200) {
+     toast({
+      title: "Success",
+      description: "Thank you for your feedback!",
+    });
       setFeedbackType('');
       setFeedbackText('');
-      setIsSubmitting(false);
-    }, 1500);
-    
-    // In a real app, you would send this to your backend
-    // const response = await fetch('/api/feedback', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ type: feedbackType, feedback: feedbackText }),
-    // });
-  };
+    } else {
+        toast({
+      title: "Error",
+      description: res.data?.message || "Failed to send feedback. Please try again.",
+      variant: "destructive",
+    });
+    }
+  } catch (error: any) {
+      toast({
+    title: "Error",
+    description: error?.response?.data?.message || "An error occurred while sending feedback.",
+    variant: "destructive",
+  });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <MainLayout>

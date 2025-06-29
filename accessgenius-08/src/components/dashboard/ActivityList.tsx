@@ -8,13 +8,13 @@ interface Activity {
   id: string;
   title: string;
   time: string;
-  user?: {
+/* user?: {
     name: string;
     avatar?: string;
     initials: string;
-  };
-  status?: 'completed' | 'pending' | 'failed' | 'warning';
-  type: 'assessment' | 'user' | 'system' | 'alert';
+  };*/  
+  status?: 'completed' | 'pending';// | 'failed' | 'warning';
+ // type: 'assessment' | 'user' | 'system' | 'alert';
   description?: string;
 }
 
@@ -62,12 +62,12 @@ const ActivityList: React.FC<ActivityListProps> = ({
                 index < activities.length - 1 && "border-b"
               )}
             >
-              {activity.user && (
+             {/* {activity.user && (
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={activity.user.avatar} alt={activity.user.name} />
                   <AvatarFallback>{activity.user.initials}</AvatarFallback>
                 </Avatar>
-              )}
+              )}*/}
               <div className="flex-1 space-y-1">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
