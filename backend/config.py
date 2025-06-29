@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-DATABASE_URI = "mysql+mysqlconnector://root:root@localhost:3306/signup_db"
+DATABASE_URI = "mysql+mysqlconnector://root:@localhost:3306/signup_db"
 
 class Config:
     SQLALCHEMY_DATABASE_URI = DATABASE_URI
