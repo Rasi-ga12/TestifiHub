@@ -92,7 +92,7 @@ const Analytics = () => {
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         toast({
-          title: "",
+          title: 'Error',
           description: error.response?.data?.message || "Failed to fetch analytics data.",
           variant: 'destructive',
         });
@@ -327,7 +327,7 @@ const Analytics = () => {
                   <XAxis dataKey="date" tickFormatter={d => d.slice(-2)} />
                   <YAxis domain={[0, 100]} />
                   {chartData.length > 0 && <Tooltip contentStyle={{
-                    backgroundColor: '#1e3a8a',
+                    backgroundColor: 'green',
                     borderRadius: '8px',
                     border: 'none',
                     color: 'white',

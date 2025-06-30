@@ -1,10 +1,10 @@
-
 import React, { useEffect , useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BellRing, LogOut, Sun, Moon } from 'lucide-react';
+import { BellRing, LogOut, Sun, Moon,Menu } from 'lucide-react';
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import axios from 'axios';
 interface HeaderActionsProps {
   isDarkMode: boolean;
@@ -80,14 +80,40 @@ useEffect(()=>{
           </DropdownMenu>
         </>
       ) : (
-        <div className="flex items-center gap-2">
-          <Button asChild variant="ghost">
-            <Link to="/login">Log in</Link>
+        <>
+    {/* Desktop View: inline buttons */}
+    <div className="hidden sm:flex items-center gap-2">
+      <Button asChild variant="ghost">
+        <Link to="/login">Log in</Link>
+      </Button>
+      <Button asChild>
+        <Link to="/register">Sign up</Link>
+      </Button>
+    </div>
+
+    {/* Mobile View: Hamburger Menu */}
+    <div className="sm:hidden">
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Menu className="h-6 w-6" />
           </Button>
-          <Button asChild>
-            <Link to="/register">Sign up</Link>
-          </Button>
-        </div>
+        </SheetTrigger>
+        <SheetContent
+          side="right"
+          className="p-0 flex flex-col items-stretch w-48 h-auto mt-16 rounded-lg shadow-lg border bg-background gap-0"
+          style={{ maxHeight: 'unset', height: 'auto', top: '4rem', bottom: 'unset' }}
+        >
+          <Link to="/login" className="text-lg font-medium px-6 py-3 border-b hover:bg-accent transition-colors">
+            Log in
+          </Link>
+          <Link to="/register" className="text-lg font-medium px-6 py-3 hover:bg-accent transition-colors">
+            Sign up
+          </Link>
+        </SheetContent>
+      </Sheet>
+    </div>
+  </>
       )}
     </div>
   );

@@ -121,12 +121,12 @@ const AssessmentGenerator: React.FC = () => {
   };
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto px-1">
+    <div className="max-h-[80vh] overflow-y-auto px-1">
     <Card className='w-full'>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-primary" />
-          <CardTitle  className='text-lg sm:text-xl'>AI Assessment Generator</CardTitle>
+          <CardTitle className='text-lg sm:text-xl'>AI Assessment Generator</CardTitle>
         </div>
         <CardDescription className='text-sm sm:text-base'>Create custom assessments using AI technology</CardDescription>
       </CardHeader>
@@ -142,7 +142,7 @@ const AssessmentGenerator: React.FC = () => {
           <TabsContent value="manual" className="space-y-4 animate-fade-in-up">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="subject"
@@ -183,7 +183,7 @@ const AssessmentGenerator: React.FC = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="difficulty"
@@ -248,16 +248,16 @@ const AssessmentGenerator: React.FC = () => {
         </Tabs>
       </CardContent>
 
-      <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-muted-foreground text-center">
-        <div className="flex items-center justify-center gap-1">
+      <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-2 text-sm text-muted-foreground text-center">
+        <div className="flex items-center gap-1 justify-center">
           <Brain className="h-4 w-4" />
-          <span className="text-center sm:text-left">Powered by AI</span>
+          <span>Powered by AI</span>
         </div>
-        <span className="text-center sm:text-left" >Remaining Assessments: {remainingAssessments}</span>
-        {isGenerating && <span>This may take a few moments...</span>}
+        <span className="text-center sm:text-left">Remaining Assessments: {remainingAssessments}</span>
+        {isGenerating && (<span className="text-center sm:text-left">This may take a few moments...</span>)}
       </CardFooter>
     </Card>
-    </div>
+   </div>
   );
 };
 

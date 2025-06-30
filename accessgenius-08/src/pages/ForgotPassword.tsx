@@ -913,7 +913,7 @@ export default function ForgotPassword() {
               onClick={handleSendOtp}
               disabled={!canResend}
             >
-              {canResend ? "Resend OTP" : ` Resend in ${resendTimer}s`}
+              {canResend ? "Resend OTP" : `Resend in ${resendTimer}s`}
             </Button>
           </div>
         )}

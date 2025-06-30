@@ -58,9 +58,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   );
 
   return (
-    <div className="fixed top-0 left-0 w-full h-screen bg-background flex flex-col">
+    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden max-w-full">
+
       {/* Header */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+<header className="fixed top-0 left-0 w-full h-16 z-40 border-b bg-background/95">
         <div className="flex h-16 items-center justify-between py-4 px-4 w-full">
           <div className="flex items-center gap-2">
             {isAuthenticated && (isMobile || isTablet) && (
@@ -82,6 +83,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </Sheet>
             )}
             <Logo size={isMobile ? "sm" : "md"} />
+            
           </div>
 
           <HeaderActions
@@ -105,8 +107,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
         <main
           className={cn(
-            "flex-1 overflow-y-auto h-[calc(100vh-4rem)] py-6 px-6",
-            isAuthenticated && !isMobile && !isTablet? "ml-64" : "",
+            "absolute top-16 left-0 right-0 bottom-0 overflow-y-auto px-6 pb-6",
+            isAuthenticated && !(isMobile || isTablet) ? "ml-64" : "",
             isAuthPage ? "flex items-center justify-center" : "",
             pageTransition
               ? "page-transition-enter page-transition-enter-active"

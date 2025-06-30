@@ -125,8 +125,8 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
   const lowTimeWarning = remainingTime < 300;
 
   return (
-    <div className="container max-w-4xl mx-auto py-6">
-      <Card className="shadow-md">
+   <div className="w-full min-h-screen px-4 py-6 mx-auto sm:max-w-4xl overflow-hidden">
+      <Card className="shadow-md w-full">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${lowTimeWarning ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
@@ -178,20 +178,12 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
 
         <Separator />
 
-        <CardFooter className="flex justify-between pt-6">
-          <Button
-            variant={flaggedQuestions.has(currentQuestion.id) ? "default" : "outline"}
-            size="sm"
-            onClick={handleFlagQuestion}
-          >
-            <Flag className="mr-1 h-4 w-4" />
-            {flaggedQuestions.has(currentQuestion.id) ? "Unflag" : "Flag for review"}
-          </Button>
-
-          <div className="flex gap-2">
+       <CardFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-6 w-full">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
+              className=" w-full sm:w-auto"
               disabled={currentQuestionIndex === 0}
               onClick={handlePrevQuestion}
             >
@@ -203,6 +195,7 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                className=" w-full sm:w-auto"
                 onClick={handleNextQuestion}
               >
                 Next
@@ -212,6 +205,7 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
               <Button
                 variant="default"
                 size="sm"
+                className=" w-full sm:w-auto"
                 onClick={handleSubmitAssessment}
                 disabled={isSubmitting}
               >
@@ -370,8 +364,8 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-6">
-      <Card className="shadow-md">
+    <div className="w-full min-h-screen px-4 py-6 mx-auto sm:max-w-4xl overflow-hidden">
+      <Card className="shadow-md w-full">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${lowTimeWarning ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
@@ -430,20 +424,12 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
 
         <Separator />
 
-        <CardFooter className="flex justify-between pt-6">
-          <Button
-            variant={flaggedQuestions.has(currentQuestion.id) ? "default" : "outline"}
-            size="sm"
-            onClick={handleFlagQuestion}
-          >
-            <Flag className="mr-1 h-4 w-4" />
-            {flaggedQuestions.has(currentQuestion.id) ? "Unflag" : "Flag for review"}
-          </Button>
-
-          <div className="flex gap-2">
+        <CardFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 pt-6 w-full">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
+              className=" w-full sm:w-auto"
               disabled={currentQuestionIndex === 0}
               onClick={handlePrevQuestion}
             >
@@ -455,6 +441,7 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
               <Button
                 variant="outline"
                 size="sm"
+                className=" w-full sm:w-auto"
                 onClick={handleNextQuestion}
               >
                 Next
@@ -464,6 +451,7 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
               <Button
                 variant="default"
                 size="sm"
+                className=" w-full sm:w-auto"
                 onClick={handleSubmitAssessment}
                 disabled={isSubmitting}
               >

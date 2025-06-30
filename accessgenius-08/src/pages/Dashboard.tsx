@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import MainLayout from "@/components/layout/MainLayout";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
+// import DashboardStats from "@/components/dashboard/DashboardStats";
 
 import {
   Card,
@@ -59,13 +60,17 @@ const Dashboard: React.FC = () => {
     (assessment) => assessment.status === activeTab
   );
 
+
   return (
     <MainLayout>
       <div className="py-6 space-y-8 animate-fade-in">
+
         <DashboardHeader
           title={`Welcome, ${currentUser.name}`}
           description="Track your assessment progress and upcoming deadlines"
         />
+
+        {/*<DashboardStats role="student" />*/}
 
         <Card>
           <CardHeader>
@@ -73,8 +78,8 @@ const Dashboard: React.FC = () => {
             <CardDescription>
               View and complete your assigned assessments
             </CardDescription>
-          </CardHeader>
 
+          </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
@@ -82,13 +87,8 @@ const Dashboard: React.FC = () => {
                 <TabsTrigger value="completed">Completed</TabsTrigger>
               </TabsList>
 
-              <TabsContent
-                value={activeTab}
-                className={cn(
-                  (isMobile || isTablet) ? "overflow-x-auto" : "",
-                  "space-y-4"
-                )}
-              >
+        
+              <TabsContent value={activeTab} className={cn((isMobile || isTablet) ? "overflow-x-auto" : "", "space-y-4")}> 
                 {filteredAssessments.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
                     No {activeTab} assessments found.
@@ -103,14 +103,14 @@ const Dashboard: React.FC = () => {
                           <TableHead>Created</TableHead>
                           <TableHead>Due Date</TableHead>
                           <TableHead>Status</TableHead>
-                          {activeTab === "pending" ? (
+                          {activeTab === 'pending' ? (
                             <TableHead>Action</TableHead>
                           ) : (
                             <TableHead>Score</TableHead>
                           )}
-                          {activeTab === "completed" && (
-                            <TableHead>Preview</TableHead>
-                          )}
+                          {activeTab === "completed" ? (
+                            <TableHead>preview</TableHead>
+                          ) : null}
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -134,7 +134,9 @@ const Dashboard: React.FC = () => {
                                     : "bg-green-50 text-green-700 border-green-200"
                                 }
                               >
-                                {assessment.status.charAt(0).toUpperCase() +
+                                {assessment.status
+                                  .charAt(0)
+                                  .toUpperCase() +
                                   assessment.status.slice(1)}
                               </Badge>
                             </TableCell>

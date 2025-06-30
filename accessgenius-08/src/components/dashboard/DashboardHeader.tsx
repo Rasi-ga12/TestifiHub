@@ -49,10 +49,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       
       {/* Actions & Buttons */}
       <div className="flex items-center gap-2 flex-shrink-0">
-          { /* <Button variant="outline" size="sm">
-        <RefreshCw className="mr-2 h-4 w-4" />
+        {/*<Button variant="outline" size="sm">
+          <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
-        </Button>  */ }
+        </Button>*/}
 
         {/* Conditional Assessment Button */}
         {userRole !== 'admin' && (

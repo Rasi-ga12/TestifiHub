@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-//import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
@@ -20,7 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Shield, AlertTriangle } from "lucide-react";
 import axios from "axios";
-import { toast } from "sonner";
+//import { toast } from "sonner";
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(8, {
@@ -73,19 +74,29 @@ const SettingsSecurity = () => {
       try {
     const res = await axios.post("http://127.0.0.1:5000/reset-password", arr);
     if (res.status === 200) {
-       toast.success(res.data?.message || "Your password has been updated successfully.");
+       toast({
+        title: "Success",
+        description: res.data?.message || "password updated sucessfully.",
+        
+      });
       passwordForm.reset({
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
     } else {
-       toast.error(res.data?.message || "Failed to update password.");
+       toast({
+        title: "Error",
+        description: res.data?.message || "Failed to update password.",
+        variant: "destructive",
+       })
     }
   } catch (error: any) {
-      toast.error(
-    error?.response?.data?.message || "Failed to update password."
-  );
+      toast({
+        title: "Error",
+        description:"Failed to update password.",
+        variant: "destructive",
+       })
   }
   }
   // request to delete 
@@ -96,6 +107,11 @@ const SettingsSecurity = () => {
       {
         console.log("successfull")
       }
+      toast({
+        title: "success",
+        description: res.data?.message || "Your account data are deleted.",
+       })
+      window.location.href = "/";
     }
     catch(error)
     {
@@ -249,14 +265,14 @@ const SettingsSecurity = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="rounded-lg border border-destructive p-4">
-           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div  className="flex-1">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex-1">
                 <h4 className="font-medium">Delete Account</h4>
                 <p className="text-sm text-muted-foreground">
                   Permanently delete your account and all associated data.
                 </p>
               </div>
-              <Button variant="destructive" className="w-full sm:w-auto min-w-[150px]"  onClick={()=>onDelete()}>Delete Account</Button>
+              <Button variant="destructive" onClick={()=>onDelete()} className="w-full sm:w-auto min-w-[150px]">Delete Account</Button>
             </div>
           </div>
         </CardContent>
