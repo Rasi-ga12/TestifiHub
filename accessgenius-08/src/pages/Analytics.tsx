@@ -260,7 +260,7 @@ const Analytics = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={barChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="subject" tickFormatter={(sub) => sub.charAt(0).toUpperCase() + sub.slice(1)} />
+                  
                   <YAxis domain={[0, 100]} />
                   {barChartData.length > 0 && <Tooltip content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {

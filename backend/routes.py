@@ -538,29 +538,49 @@ def recent_activity():
         data = request.json
         user_id = data["user_id"]
         threshold = datetime.now(tz) - timedelta(days=7)
-        #sort by time descending
-        user = (
+        # sort by time descending
+        user_scores = (
             Score.query
             .filter(Score.user_id == user_id, Score.time >= threshold)
             .order_by(Score.time.desc())
             .all()
         )
         response = []
-        for u in user:
-            # due days for pending assessments
-            time = (u.due_date.date() - datetime.today().date()).days
-            delta = (datetime.now(tz) - u.time) if u.time.tzinfo else (datetime.now(tz) - u.time.replace(tzinfo=tz))
+        for u in user_scores:
+            # Handle missing due_date
+            if u.due_date:
+                due_days = (u.due_date.date() - datetime.today().date()).days
+                due_str = f"{u.topic} due in {due_days} days"
+                expired_str = f"Assessment expired at {u.due_date.date().strftime('%Y-%m-%d')}"
+            else:
+                due_str = f"{u.topic} (no due date)"
+                expired_str = "Assessment expired (no due date)"
+
+            # Handle time delta
+            try:
+                if u.time.tzinfo:
+                    delta = datetime.now(tz) - u.time
+                else:
+                    delta = datetime.now(tz) - u.time.replace(tzinfo=tz)
+            except Exception:
+                delta = timedelta(days=0)
             if delta.days < 1:
                 settime = f"{delta.total_seconds()/3600:.1f} hours ago"
             else:
                 settime = f"{u.time.strftime('%Y-%m-%d')} at {u.time.strftime('%H:%M')}"
+
+            # Handle status and score
             if u.status == Status.completed:
+                try:
+                    percent = round(((u.score or 0) / 30) * 100, 2)
+                except Exception:
+                    percent = 0
                 response.append({
                     "id": u.id,
                     "title": f"{u.subject} Assessment completed ",
                     "time": settime,
                     "status": u.status.value,
-                    "description": f" scored {round(((u.score/30)*100),2)}% on {u.topic}"
+                    "description": f" scored {percent}% on {u.topic}"
                 })
             elif u.status == Status.pending:
                 response.append({
@@ -568,7 +588,7 @@ def recent_activity():
                     "title": f"{u.subject} Assessment assigned ",
                     "time": settime,
                     "status": u.status.value,
-                    "description": f"{u.topic} due in {time} days"
+                    "description": due_str
                 })
             else:
                 response.append({
@@ -576,11 +596,13 @@ def recent_activity():
                     "title": f"{u.subject} Assessment expired",
                     "time": settime,
                     "status": u.status.value,
-                    "description": f"Assessment expired at {u.due_date.date().strftime('%Y-%m-%d')}"
+                    "description": expired_str
                 })
         return jsonify(response), 200
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"An error occurred: {str(e)}"}), 500 
     
 # Total assessment
 @routes.route("/total_assessment", methods=["POST"])
@@ -591,7 +613,7 @@ def total_assessment():
         this_month = datetime.now(tz).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         now = datetime.now(tz)
 
-        # Current month stats
+        # Only completed assessments for current month
         current_stats = (
             db.session.query(
                 func.count(Score.id),
@@ -599,6 +621,7 @@ def total_assessment():
             )
             .filter(
                 Score.user_id == user_id,
+                Score.status == Status.completed,                 
                 Score.time >= this_month,
                 Score.time <= now
             )
@@ -607,7 +630,7 @@ def total_assessment():
         count = current_stats[0] or 0
         average_score = int(current_stats[1]) if current_stats[1] is not None else 0
 
-        # Previous month stats
+        # Only completed assessments for previous month
         last_day_prev_month = this_month - timedelta(days=1)
         first_day_prev_month = last_day_prev_month.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         prev_stats = (
@@ -617,6 +640,7 @@ def total_assessment():
             )
             .filter(
                 Score.user_id == user_id,
+                Score.status == Status.completed,  
                 Score.time >= first_day_prev_month,
                 Score.time <= last_day_prev_month
             )
@@ -624,8 +648,7 @@ def total_assessment():
         )
         previouscount = prev_stats[0] or 0
         average_prev_month = int(prev_stats[1]) if prev_stats[1] is not None else 0
-
-        # Calculate percentages
+    # Calculate percentages
         days_in_current = (now - this_month).days + 1
         days_in_prev = (last_day_prev_month - first_day_prev_month).days + 1
 
@@ -635,12 +658,11 @@ def total_assessment():
         approximate_avg_score = average_score - average_prev_month
         
         return jsonify({
-            "total_assessment": count,
+            "total_assessment": count, 
             "percentage": f"{total_percent:.2f}%",
             "average": average_score,
             "approxi_average": approximate_avg_score
         }), 200
-    
 
     except Exception as e:
         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
