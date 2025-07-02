@@ -101,16 +101,6 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
     console.log("Submitted answers:", finalAnswers);
     setTimeout(() => {
 
-      /*const score = calculateScore();
-      toast.success("Assessment submitted successfully!", {
-        description: `Your score: ${score}%`
-      });
-      navigate("/score", {
-        state: {score,answers,questions
-        }
-      });
-      onComplete(answers, score);
-    }, 1500);*/
 
       onComplete(finalAnswers);
     }, 500);
@@ -180,10 +170,6 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
             >
               {currentQuestion.options.map(option => (
 
-                /* <label key={option.id} htmlFor={option.id} className={`flex items-center space-x-3 border p-4 rounded-md  hover:bg-muted transition-colors cursor pointer ${isMobile ? "text-base":"text-sm"}`}>
-                  <RadioGroupItem value={option.id} id={option.id} className="shrink-0" />
-                  <span className="flex-grow">{option.text}</span>
-                </label> */
 
                  <div key={option.id} className="flex items-center space-x-2 p-3 rounded-md border hover:bg-muted transition-colors">
                   <RadioGroupItem value={option.id} id={option.id} />

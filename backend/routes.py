@@ -86,8 +86,6 @@ def verify_otp():
     data = request.json
     email = data.get("emailForReset")
     otp = data.get("otp")
-    print(otp)
-    print(otp_storage)
     if email not in otp_storage or otp_storage[email] != otp:
         return jsonify({"message": "Invalid OTP"}), 400
    
@@ -128,162 +126,6 @@ def reset_password():
 
     return jsonify({"message": "Password reset successful!"}),200
 
-    
-@routes.route("/Pdffile", methods=["POST"])
-
-def pdf_file():
-    q_type={}
-    if "pdfFile" not in request.files:
-        return Response(f"No file uploaded",status=400,mimetype="text/plain")
-    
-
-    userfile = request.files["pdfFile"]
-    user_filename = request.form.get("filename").lower
-    difficulty=request.form.get("difficulty")
-    questionCount=request.form.get("questionCount")
-
-   
-
-    try:
-        all_text = ""
-        if user_filename.endswith(".pdf"):
-            readerpdf = PdfReader(userfile)
-            if len(readerpdf.pages)==0:
-                return Response(f"the file is empty",status=400,mimetype="text/plain")
-            else:
-                for i in range(len(readerpdf.pages)): 
-                    page_text = readerpdf.pages[i].extract_text()
-                    if page_text:
-                        all_text += f"Page {i+1}:\n{page_text}\n\n"
-
-        elif user_filename.endswith(".docx"):
-            readerdocx=Document(userfile)
-            if len(readerdocx.paragraphs)==0:
-                return Response(f"the file is empty",status=400,mimetype="text/plain")
-            else:
-                for i in range(len(readerdocx.paragraphs)):
-                    page_text=readerdocx.paragraphs[i].text
-
-
-            
-
-
-        # generating question using ai
-        api_key = Config.API_KEY
-        if not api_key:
-            return Response(f"Error : API key is missing",status=401,mimetype="text/plain")
-        try:
-            
-            genai.configure(api_key=api_key)
-            model=genai.GenerativeModel("gemini-2.0-flash")
-            model_response = model.generate_content(contents = (
-                f"""
-                Generate questions strictly based on the syllabus content provided below with {difficulty} to the syllabus
-                Each question should be categorized by its corresponding mark allocation. 
-                f"Ensure all questions are relevant to the syllabus and do not include any additional information. 
-                Syllabus Content:{all_text}
-                ### Response Format:
-                Your response **must be** a valid JSON dictionary.
-                Do **not** include any explanations, extra text, or formatting outside of JSON.
-                Strictly follow those keys only:
-                include the title also
-                {{
-                    "Questions":[{{"title":"Ai robotics"}}
-                   {{ 
-                    "marks":"2 mark",
-                    "questions":[
-                        " 1.what is robotics ?",
-                         "2.what are recent innovation?"
-                    ]
-                    }},
-                    {{
-                    "marks":"2 mark",
-                    "questions":[
-                        " 1.what is ai ?",
-                         "2.what is machine learning?"
-                    ]
-                    }}
-                    ] 
-                }}
-                """
-                ))
-
-            response_text = model_response.candidates[0].content.parts[0].text
-           # print(response_text)
-            #print(type(response_text))
-            clean_response = re.sub(r"```json\n|\n```", "", response_text).strip()
-           # print(type(clean_response))
-            try:
-                model_output = json.loads(clean_response)
-                print("Parsed Dictionary:", model_output)
-            except json.JSONDecodeError as e:
-                print("JSON Decode Error:", e)
-                #print("Raw Response:", clean_response)
-
-            
-            #print(model_output)
-            
-            
-
-            if not model_output :
-                return Response("AI model did not generate any content", status=500, mimetype="text/plain")
-        except Exception as e:
-                return Response(f"Google AI Error: {str(e)}", status=500, mimetype="text/plain")
-
-        # converting the text to document
-        try:   
-            buffer = BytesIO()
-            doc = SimpleDocTemplate(buffer, pagesize=A4)
-            styles = getSampleStyleSheet()
-
-            elements = []
-
-            # Title
-            title = model_output["Questions"][0].get("title", "No Title")
-            elements.append(Paragraph(f"<b>{title}</b>", styles["Title"]))
-            elements.append(Spacer(1, 10))  
-            left_style = ParagraphStyle(name="LeftAlign", parent=styles["Heading2"], alignment=TA_LEFT)
-            right_style = ParagraphStyle(name="RightAlign", parent=styles["Heading2"], alignment=TA_RIGHT)
-
-            for item, i in zip(model_output["Questions"][1:], newItems):
-                data = [[
-                Paragraph(f"<b>{i['marks']} marks</b>", left_style),  
-                Paragraph(f"<b>{i['marks']} x {i['questions']} = {i['totalMarks']}</b>", right_style)  
-            ]]
-
-            # Create a table with two columns
-                table = Table(data, colWidths=[200, 200])  # Adjust widths as needed
-                table.setStyle(TableStyle([
-                    ('ALIGN', (0, 0), (0, 0), 'LEFT'),    
-                    ('ALIGN', (1, 0), (1, 0), 'RIGHT'),  
-                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),  # Reduce spacing
-                ]))
-
-
-                elements.append(table)
-                elements.append(Spacer(1, 10))
-                if "questions" in item:
-                    for question in item["questions"]:
-                        elements.append(Paragraph(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{question}", styles["Normal"]))
-                        elements.append(Spacer(1, 13))
-
-                elements.append(Spacer(1, 12))  
-
-            # Build PDF
-            doc.build(elements)
-
-            buffer.seek(0)
-            return send_file(buffer, mimetype="application/pdf")
-
-        except Exception as e:
-            print(f"error:{e}")
-
-    except Exception as e:
-        print(f"Error: {e}") 
-        return Response(f"Error {str(e)}",status=500 ,mimetype="text/plain") 
-    
 # feedback
 @routes.route("/feedback",methods=["POST"])
 def feedBack():
@@ -430,7 +272,6 @@ def start():
         result["questions"].append(question_data)
     score.status="completed"
     db.session.commit()
-    print(result)
     return jsonify(result)
     
 #for pending requests
@@ -474,7 +315,6 @@ def submitting():
     user_id=data["user_id"]
     score_id=data["score_id"]
     questions=data["answers"]
-    print(type(questions))
     for qid_str , choice in questions.items():
         qid=int(qid_str)
         rec=Question.query.get(qid)

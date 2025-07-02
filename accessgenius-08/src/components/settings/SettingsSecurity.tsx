@@ -20,7 +20,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Shield, AlertTriangle } from "lucide-react";
 import axios from "axios";
-//import { toast } from "sonner";
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(8, {
@@ -46,7 +45,6 @@ type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 type TwoFactorFormValues = z.infer<typeof twoFactorSchema>;
 
 const SettingsSecurity = () => {
-  //const { toast } = useToast();
   
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -191,63 +189,6 @@ const SettingsSecurity = () => {
           </Form>
         </CardContent>
       </Card>
-      
-      {/* <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            <span>Two-Factor Authentication</span>
-          </CardTitle>
-          <CardDescription>
-            Add an extra layer of security to your account.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...twoFactorForm}>
-            <form onSubmit={twoFactorForm.handleSubmit(onTwoFactorSubmit)} className="space-y-4">
-              <FormField
-                control={twoFactorForm.control}
-                name="twoFactorAuth"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Enable Two-Factor Authentication</FormLabel>
-                      <FormDescription>
-                        Require a verification code when logging in to your account.
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              {twoFactorForm.watch("twoFactorAuth") && (
-                <Alert>
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Important</AlertTitle>
-                  <AlertDescription>
-                    If you enable two-factor authentication, you will need to enter a verification code each time you log in.
-                    Make sure you have access to your authentication app or backup codes.
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <Button type="submit">
-                {twoFactorForm.watch("twoFactorAuth") ? "Enable Two-Factor Authentication" : "Disable Two-Factor Authentication"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="text-sm text-muted-foreground">
-          Last sign in: Yesterday at 15:32 from 192.168.1.1
-        </CardFooter>
-      </Card>
-       */}
       <Card>
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
