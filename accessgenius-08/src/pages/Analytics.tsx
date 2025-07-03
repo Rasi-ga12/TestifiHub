@@ -43,8 +43,8 @@ const difficultyColors = {
 
 const Analytics = () => {
   const currentYear = new Date().getFullYear();
-  const dummyFirstLoginYear = 2024;
-  const [firstLoginYear] = useState(dummyFirstLoginYear);
+  
+  const [firstLoginYear,setFirstLoginYear] = useState<number | null>(null);
 
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -70,12 +70,13 @@ const Analytics = () => {
         setRecentActivities(recentActivitiesRes.data);
         const totalAssessmentsRes = await axios.post('http://127.0.0.1:5000/total_assessment', { user_id });
         setTotalAssessments(totalAssessmentsRes.data);
+        setFirstLoginYear(totalAssessmentsRes.data.);
 
         const userPerformanceRes = await axios.post('http://127.0.0.1:5000/performance_analysis', {
           user_id,
           selectedYear
         });
-        setUserPerformance(userPerformanceRes.data);
+        setUserPerformance(userPerformanceRes.data.login_year);
 
         const subjectPerformanceRes = await axios.post('http://127.0.0.1:5000/sub_analysis', {
           user_id,
