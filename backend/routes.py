@@ -452,6 +452,10 @@ def total_assessment():
         user_id = data["user_id"]
         this_month = datetime.now(tz).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         now = datetime.now(tz)
+        
+        # first login year
+        first_login_year=(db.session.query( func.min(Score.time)).filter( Score.user_id == user_id).scalar())
+        login_year=first_login_year.year if first_login_year else 0
 
         # Only completed assessments for current month
         current_stats = (
@@ -501,7 +505,8 @@ def total_assessment():
             "total_assessment": count, 
             "percentage": f"{total_percent:.2f}%",
             "average": average_score,
-            "approxi_average": approximate_avg_score
+            "approxi_average": approximate_avg_score,
+            "first_login_year":login_year
         }), 200
 
     except Exception as e:
