@@ -70,7 +70,7 @@ const Analytics = () => {
         setRecentActivities(recentActivitiesRes.data);
         const totalAssessmentsRes = await axios.post('http://127.0.0.1:5000/total_assessment', { user_id });
         setTotalAssessments(totalAssessmentsRes.data);
-        setFirstLoginYear(totalAssessmentsRes.data.);
+        setFirstLoginYear(totalAssessmentsRes.data.first_login_year);
 
         const userPerformanceRes = await axios.post('http://127.0.0.1:5000/performance_analysis', {
           user_id,
