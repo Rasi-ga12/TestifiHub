@@ -2,11 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
-DATABASE_URI = "mysql+mysqlconnector://root:@localhost:3306/signup_db"
-
 class Config:
-    SQLALCHEMY_DATABASE_URI = DATABASE_URI
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv("SECRET_KEY")
     MAIL_SERVER = 'smtp.gmail.com'
