@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/select';
 import AssessmentGenerator from '@/components/assessments/AssessmentGenerator';
 import QuestionGenerator from '@/components/assessments/QuestionGenerator';
+import UploadSyllabusTab from '@/components/assessments/UploadSyllabusTab';
+
 
 interface DashboardHeaderProps {
   title: string;
@@ -33,7 +35,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   const [showGenerator, setShowGenerator] = useState(false);
   const [showQuestionGenerator, setShowQuestionGenerator] = useState(false);
   const [questionGeneratorSelectedGroup, setQuestionGeneratorSelectedGroup] = useState('');
-
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
+  
+  
   return (
     <div className={cn(
       "flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4",
@@ -47,12 +51,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         )}
       </div>
       
-      {/* Actions & Buttons */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {/*<Button variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>*/}
+       {/* Actions & Buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+         <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Plus className="mr-2 h-4 w-4" />
+          question Generator
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[900px] overflow-y-auto max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Upload Syllabus</DialogTitle>
+            <DialogDescription>
+              Upload a syllabus file and generate questions using AI.
+            </DialogDescription>
+          </DialogHeader>
+        <UploadSyllabusTab />
+        </DialogContent>
+      </Dialog>
 
         {/* Conditional Assessment Button */}
         {userRole !== 'admin' && (

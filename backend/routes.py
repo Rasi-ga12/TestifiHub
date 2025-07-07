@@ -126,6 +126,159 @@ def reset_password():
 
     return jsonify({"message": "Password reset successful!"}),200
 
+@routes.route("/Pdffile", methods=["POST"]) 
+def pdf_file():
+    all_text = ""
+    try:
+        # Accept either a file or syllabus text
+        if "file" in request.files:
+            userfile = request.files["file"]
+            filename = userfile.filename.lower()
+            if filename.endswith(".pdf"):
+                readerpdf = PdfReader(userfile)
+                if len(readerpdf.pages) == 0:
+                    return Response("The file is empty", status=400, mimetype="text/plain")
+                for i in range(len(readerpdf.pages)):
+                    page_text = readerpdf.pages[i].extract_text()
+                    if(page_text):
+                        print(page_text)
+                    else:
+                        print("hello") 
+                    if page_text:
+                        all_text += f"Page {i+1}:\n{page_text}\n\n"
+            elif filename.endswith(".docx"):
+                readerdocx = Document(userfile)
+                if len(readerdocx.paragraphs) == 0:
+                    return Response("The file is empty", status=400, mimetype="text/plain")
+                for para in readerdocx.paragraphs:
+                    if para.text:
+                        all_text += para.text + "\n"
+            else:
+                return Response("Unsupported file type", status=400, mimetype="text/plain")
+        elif "syllabus_text" in request.form:
+            all_text = request.form["syllabus_text"]
+            filename = "syllabus.txt"
+        else:
+            return Response("No file or syllabus text uploaded", status=400, mimetype="text/plain")
+        print(all_text)
+        question_data = {}  # dictionary to hold all pairs
+        i = 0
+
+        while True:
+            m = request.form.get(f"marks_{i}")
+            q = request.form.get(f"questions_{i}")
+            if m is None or q is None:
+                break
+            question_data[i] = {
+                "marks": int(m),
+                "questions": int(q)
+            }
+            i += 1
+        # Generate questions using AI
+        api_key = Config.API_KEY
+        if not api_key:
+            return Response("Error: API key is missing", status=401, mimetype="text/plain")
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.0-flash")
+            model_response = model.generate_content(contents=(
+                            f"""
+            Generate questions strictly based on the syllabus content provided.
+
+            For each mark type like this structure: {json.dumps(question_data, indent=2)}, generate exactly the number of questions mentioned.
+
+            Each question should be categorized by its corresponding mark allocation.
+
+            Ensure all questions are relevant to the syllabus and do not include any additional information.
+
+            Syllabus Content:
+            \"\"\"{all_text}\"\"\"
+
+            ### Response Format:
+
+            Your response **must be** a valid JSON dictionary.
+
+            Do **not** include any explanations, extra text, or formatting outside of JSON.
+
+            Strictly follow only these keys and structure:
+
+            {{
+            "Questions": [
+                {{
+                "title": "<provide title for syllabus>"
+                }},
+                {{
+                "marks": "5",
+                "questions": [
+                    "1. <questions>?",
+                    // ... up to the number of questions in question_data
+                ]
+                }},
+            ]
+            }}
+            """
+            ))
+            response_text = model_response.candidates[0].content.parts[0].text
+            clean_response = re.sub(r"```json\n|\n```", "", response_text).strip()
+            try:
+                model_output = json.loads(clean_response)
+            except json.JSONDecodeError as e:
+                print("JSON Decode Error:", e)
+                return Response("AI did not return valid JSON", status=500, mimetype="text/plain")
+            if not model_output:
+                return Response("AI model did not generate any content", status=500, mimetype="text/plain")
+        except Exception as e:
+            return Response(f"Google AI Error: {str(e)}", status=500, mimetype="text/plain")
+
+        # Convert the text to PDF document
+        try:
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            styles = getSampleStyleSheet()
+            elements = []
+
+            # Title
+            title = model_output["Questions"][0].get("title", "No Title")
+            elements.append(Paragraph(f"<b>{title}</b>", styles["Title"]))
+            elements.append(Spacer(1, 10))
+            left_style = ParagraphStyle(name="LeftAlign", parent=styles["Heading2"], alignment=TA_LEFT)
+            right_style = ParagraphStyle(name="RightAlign", parent=styles["Heading2"], alignment=TA_RIGHT)
+
+            for item in model_output["Questions"][1:]:
+                marks = item.get("marks", "")
+                questions = item.get("questions", [])
+                data = [
+                    [
+                        Paragraph(f"<b>{marks} marks</b>", left_style),
+                        Paragraph(f"<b>{marks} x {len(questions)} = {len(questions) * int(marks.split()[0]) if marks and marks[0].isdigit() else ''}</b>", right_style)
+                    ]
+                ]
+                table = Table(data, colWidths=[200, 200])
+                table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                    ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+                ]))
+                elements.append(table)
+                elements.append(Spacer(1, 10))
+                for question in questions:
+                    elements.append(Paragraph(f"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{question}", styles["Normal"]))
+                    elements.append(Spacer(1, 13))
+                elements.append(Spacer(1, 12))
+
+            doc.build(elements)
+            buffer.seek(0)
+            return send_file(buffer, mimetype="application/pdf")
+        except Exception as e:
+            print(f"PDF generation error: {e}")
+            return Response(f"PDF generation error: {str(e)}", status=500, mimetype="text/plain")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return Response(f"Error {str(e)}", status=500, mimetype="text/plain") 
+
 # feedback
 @routes.route("/feedback",methods=["POST"])
 def feedBack():
