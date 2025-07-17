@@ -46,10 +46,11 @@ const AssessmentGenerator: React.FC = () => {
       content: "",
     },
   });
-
+  
+  const selectedSubject=form.watch("subject");
   const subjects = [
     "Mathematics", "Physics", "Chemistry", "Biology", "Computer Science",
-    "English Literature", "History", "Geography", "Economics", "Business Studies"
+    "English Literature", "History", "Geography", "Economics", "Business Studies", "Others"
   ];
 
   const difficulties = [
@@ -181,6 +182,22 @@ const AssessmentGenerator: React.FC = () => {
                       </FormItem>
                     )}
                   />
+
+                  {selectedSubject==="others" && (
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({field})=> (
+                        <FormItem>
+                        <FormLabel>Sub Subject</FormLabel>
+                        <FormControl>
+                          <Input placeholder="sub subject" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      )}
+                    />
+                  )}  
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
