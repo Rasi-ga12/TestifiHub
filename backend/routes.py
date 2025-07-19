@@ -322,6 +322,7 @@ def generate_assessment():
     user_id=data.get("user_id")
     collection=data.get("values")
     subject=collection.get("subject")
+    subsubject=collection.get("subsubject") or ""
     topic=collection.get("topic")
     difficulty=collection.get("difficulty")
     num_of_quest=collection.get("questionCount")
@@ -337,7 +338,7 @@ def generate_assessment():
             generate multiple choice question based on {subject}
             the topic related to the {topic} 
             generate question based on the level {difficulty}
-            generate {num_of_quest} questions in given {subject}
+            generate {num_of_quest} questions in given {subject} and {subsubject}
             the output should include:
                 A balanced mix of theoretical/conceptual questions (definitions, principles, properties, etc.)
                 And problem-solving questions (code output, calculations, case-based, real-world application, etc.)
