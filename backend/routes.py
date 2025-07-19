@@ -338,6 +338,15 @@ def generate_assessment():
             the topic related to the {topic} 
             generate question based on the level {difficulty}
             generate {num_of_quest} questions in given {subject}
+            the output should include:
+                A balanced mix of theoretical/conceptual questions (definitions, principles, properties, etc.)
+                And problem-solving questions (code output, calculations, case-based, real-world application, etc.)
+            instruction:
+                For programming subjects, problem-solving questions should include code snippets with outputs, debugging, or logic analysis.
+                 For scientific or mathematical subjects, problem-solving questions should require calculations or application of formulas/theories.
+                 Each question must have 4 answer choices with only one correct answer.
+                 Avoid repetition or vague questions.
+                Ensure each question is aligned with the topic and difficulty.
             ### Response Format:
             Your response **must be** a valid JSON dictionary.
             Do **not** include any explanations, extra text, or formatting outside of JSON.
