@@ -52,11 +52,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
       </div>
       
        {/* Actions & Buttons */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:justify-end sm:items-center gap-2 w-full">
          <Dialog open={showUploadDialog} onOpenChange={setShowUploadDialog}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
-            <Plus className="mr-2 h-4 w-4" />
+          <Button className="w-full sm:w-auto flex items-center justify-center whitespace-nowrap text-sm px-4 py-2 rounded-md">
+            <Plus className="mr-2 h-4 w-4 sm:h-3 sm:w-3" />
           question Generator
           </Button>
         </DialogTrigger>
@@ -76,7 +76,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <div className="flex gap-2">
             <Dialog open={showGenerator} onOpenChange={setShowGenerator}>
               <DialogTrigger asChild>
-                <Button className="flex items-center whitespace-nowrap text-base px-5 py-2 sm:text-sm sm:px-4 sm:py-2">
+                <Button className="w-full sm:w-auto flex items-center justify-center whitespace-nowrap text-sm px-4 py-2 rounded-md">
                   <Plus className="mr-2 h-4 w-4 sm:h-3 sm:w-3" />Take New Assessment
                 </Button>
               </DialogTrigger>
