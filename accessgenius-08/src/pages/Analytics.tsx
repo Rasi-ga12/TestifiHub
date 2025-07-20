@@ -76,7 +76,7 @@ const Analytics = () => {
           user_id,
           selectedYear
         });
-        setUserPerformance(userPerformanceRes.data.login_year);
+        setUserPerformance(userPerformanceRes.data);
 
         const subjectPerformanceRes = await axios.post('http://127.0.0.1:5000/sub_analysis', {
           user_id,
