@@ -351,6 +351,7 @@ def generate_assessment():
             ### Response Format:
             Your response **must be** a valid JSON dictionary.
             Do **not** include any explanations, extra text, or formatting outside of JSON.
+            **generate 30 question(mandatory)**.
             Strictly follow those keys only:
             {{{{
                 "question_text": "What is the capital of France?",
