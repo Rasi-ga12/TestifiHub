@@ -335,23 +335,36 @@ def generate_assessment():
         model=genai.GenerativeModel("gemini-2.0-flash")
         model_res=model.generate_content(contents=(
             f"""
-            generate multiple choice question based on {subject}
-            the topic related to the {topic} 
-            generate question based on the level {difficulty}
-            generate {num_of_quest} questions in given {subject} and {subsubject}
-            the output should include:
-                A balanced mix of theoretical/conceptual questions (definitions, principles, properties, etc.)
-                And problem-solving questions (code output, calculations, case-based, real-world application, etc.)
-            instruction:
-                For programming subjects, problem-solving questions should include code snippets with outputs, debugging, or logic analysis.
-                 For scientific or mathematical subjects, problem-solving questions should require calculations or application of formulas/theories.
-                 Each question must have 4 answer choices with only one correct answer.
-                 Avoid repetition or vague questions.
-                Ensure each question is aligned with the topic and difficulty.
+            Generate multiple choice questions based on the following parameters:
+            Subject: {subject}  
+            Topic: {topic}  
+            Subtopic: {subsubject}  
+            Difficulty: {difficulty}  
+            Number of questions: {num_of_quest}
+             **generate 30 question(mandatory)**.
+            Each question should be one of the following types:  
+            1. Theoretical/Conceptual — Ask about definitions, principles, rules, or properties.  
+            2. Problem-Solving  
+            For programming subjects:  
+            The question must include a **any programming language** code snippet and ask the user to either predict the output, find the error, fix the bug, or explain the behavior.
+            Format the code properly using **indentation**,**lines**, like this:
+            Do Not use ```java```
+            def add(a, b):
+                return a + b
+            print(add(2, 3))
+            
+            For scientific or mathematical subjects:  
+            The question must require a calculation or application of formulas or theories.
+            
+            Instructions:  
+            Each question must include exactly 4 answer choices, with only one correct answer.  
+            Avoid repetition, vague wording, or ambiguity.  
+            Ensure every question is aligned with the topic and difficulty level.
+            
             ### Response Format:
-            Your response **must be** a valid JSON dictionary.
-            Do **not** include any explanations, extra text, or formatting outside of JSON.
             **generate 30 question(mandatory)**.
+            Your response must be a valid JSON dictionary.
+            Do not include any explanations, extra text, or formatting outside of JSON.
             Strictly follow those keys only:
             {{{{
                 "question_text": "What is the capital of France?",

@@ -161,7 +161,9 @@ const AssessmentTaker: React.FC<AssessmentTakerProps> = ({
           )}
 
           <div className="space-y-4">
-            <div className="text-lg font-medium">{currentQuestion.text}</div>
+            <div className="text-lg font-medium">
+              <pre><code>{currentQuestion.text}</code></pre>
+            </div>
 
             <RadioGroup
               value={answers[currentQuestion.id] || ""}
