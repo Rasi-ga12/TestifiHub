@@ -72,3 +72,8 @@ SkillChecker is designed for a wide range of users, including:
 - Allows users to view and update personal details. Includes secure password change functionality to maintain account safety.
 
 ---
+## Contributors
+- Lakshanya S
+- Rakavi R
+- Rasiga M
+---
